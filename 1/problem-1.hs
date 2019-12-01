@@ -11,9 +11,7 @@ findMass xs = map (findOneComponentMass) xs
 
 findOneComponentSeriesMass :: Int -> Int
 findOneComponentSeriesMass c
-  | requiredFuel <= 0 = 0
-  | otherwise         = requiredFuel + findOneComponentSeriesMass requiredFuel
-  where requiredFuel = findOneComponentMass c
+  = sum $ takeWhile (> 0) (tail $ iterate (findOneComponentMass) c)
 
 findSeriesMass :: [Int] -> [Int]
 findSeriesMass xs = map (findOneComponentSeriesMass) xs

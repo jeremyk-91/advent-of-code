@@ -3,6 +3,7 @@ import Data.List
 
 type WireInstruction = (Char, Int)
 type Coordinate = (Int, Int)
+type TracedCoordinate = (Coordinate, Int)
 
 -- Splits elements in a list based on a delimiter
 splitOn :: (Eq a) => [a] -> a -> [[a]]
@@ -18,21 +19,21 @@ parseWireInstruction :: String -> WireInstruction
 parseWireInstruction str = (x, parseInt y)
   where x:y = str
 
-findWirePoints :: [WireInstruction] -> [Coordinate]
-findWirePoints ws = trace ws 0 0
+findWirePoints :: [WireInstruction] -> [TracedCoordinate]
+findWirePoints ws = trace ws 0 0 0
 
-trace :: [WireInstruction] -> Int -> Int -> [Coordinate]
-trace [] _ _ = []
-trace (w:ws) x y = points ++ (trace ws x' y')
-  where points = getPoints w x y
-        (x', y') = last points
+trace :: [WireInstruction] -> Int -> Int -> Int -> [TracedCoordinate]
+trace [] _ _ _ = []
+trace (w:ws) x y t = points ++ (trace ws x' y' t')
+  where points = getPoints w x y t
+        ((x', y'), t') = last points
 
-getPoints :: WireInstruction -> Int -> Int -> [Coordinate]
-getPoints (dir, len) x y
-  | dir == 'R' = [(x, y + t) | t <- offsets]
-  | dir == 'L' = [(x, y - t) | t <- offsets]
-  | dir == 'U' = [(x - t, y) | t <- offsets]
-  | dir == 'D' = [(x + t, y) | t <- offsets]
+getPoints :: WireInstruction -> Int -> Int -> Int -> [TracedCoordinate]
+getPoints (dir, len) x y t
+  | dir == 'R' = [((x, y + v), t + v) | v <- offsets]
+  | dir == 'L' = [((x, y - v), t + v) | v <- offsets]
+  | dir == 'U' = [((x - v, y), t + v) | v <- offsets]
+  | dir == 'D' = [((x + v, y), t + v) | v <- offsets]
   | otherwise  = error "Illegal direction in getPoints"
   where offsets = [1, 2..len]
 
@@ -53,7 +54,7 @@ main = do
   input <- readFile "input-3"
   let wireInstructions = map (\x -> splitOn x ',') (lines input)
   let parsedInstructions = map (\x -> map (parseWireInstruction) x) wireInstructions
-  let traces = map (sort . findWirePoints) parsedInstructions
+  let traces = map (sort . (map fst) . findWirePoints) parsedInstructions
   let intersections = sortedIntersection (traces!!0) (traces!!1)
   let answer = minimum (map manhattanDistance intersections)
   putStrLn (show answer)

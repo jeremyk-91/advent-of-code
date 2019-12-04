@@ -17,7 +17,7 @@ hasSomeStrictlyDoubleNumber :: Int -> Bool
 hasSomeStrictlyDoubleNumber = hasSomeStrictlyRepeatingCharacter . show
 
 hasSomeStrictlyRepeatingCharacter :: String -> Bool
-hasSomeStrictlyRepeatingCharacter xs = null $ filter (\(x, y) -> y == 2) runs
+hasSomeStrictlyRepeatingCharacter xs = filter (\(x, y) -> y == 2) runs /= []
   where runs = segmentIntoRuns xs
 
 segmentIntoRuns :: (Eq a) => [a] -> [(a, Int)]

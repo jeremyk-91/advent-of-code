@@ -1,12 +1,15 @@
 # advent-of-code-2019
 I'm working on the [Advent of Code](https://adventofcode.com/) problems for 2019 in this repository.
-The goal is to solve as many of the problems, if not all of them, using Haskell. I first learned about it during my degree
-at Imperial College, but haven't used it much since besides occasionally doing the 
+The goal is to solve as many of the problems as possible, if not all of them, using Haskell. I first learned about it during 
+my degree at Imperial College, but haven't used it much since besides occasionally doing the 
 [January tests](http://wp.doc.ic.ac.uk/ajf/haskell-tests/) for fun. Nonetheless, I thoroughly enjoyed learning about Haskell
 and working with it - I'm not sure how much can be attributed to the, in my opinion, excellent Tony Field.
 
 I'm most familiar with Java (with C++ a distant second and probably Python third), so working with Haskell can be quite 
 frustrating in that I'm taking a long time for something I could conceivably implement in under 5 minutes.
+
+I'll write up some of the thinking behind my solutions, as well as what I thought part 2 was going to be when I looked at the
+part 1 spec for some of the problems.
 
 ## Day 1
 Time taken: 25 minutes | Time I'd expect in Java: 3 minutes
@@ -30,12 +33,27 @@ mapping Manhattan distance onto that. The first complexity issue popped out here
 the wires covered around 10^5 points. I simply did a sort-and-merge based algorithm for an O(N log N) solution, which was
 good enough; of course I would have just gone with `HashMap` and Immutables in Java to knock this out in linear time.
 
-I was kind of scared Part 2 would have simply expanded the scale of the wires, so that you had to determine the intersections
-without actually building the set of what the wires did - and possibly even not be allowed to build the explicit set of 
-intersections (if there were too many, because the wires had identical segments running parallel). If you have a vector along 
-which both wires intersect, it seems like the closest point is either one of the ends, or possibly some point in the middle if 
-the vector crosses zero in either axis.
-
 The real Part 2 was pretty easy, though it made me realise how much I missed things like `Maps.transformValues()` or
 `foo.stream().map(function1).sorted(Comparator.comparingLong(longExtractor))`. In the end I decided to look at Haskell's
 map library rather than messing around with sorted lists of key-value pairs.
+
+### Jeremy's part 2 idea
+
+> In part 1, the length of each segment of wire was bounded by 2<sup>10</sup>, and the length of each wire was bounded by
+  2<sup>18</sup>. What happens if we changed these limits to 2<sup>63</sup> and 2<sup>63</sup> respectively? The number
+  of components of each wire is bounded by 2<sup>10</sup>, still.
+  
+> Bonus: The number of components of each wire is bounded by 2<sup>20</sup>, not 2<sup>10</sup>: your algorithm
+  cannot be quadratic in this.
+
+I originally thought Part 2 would have forced you to do a more elegant geometry-based attack on this problem. Instead of
+generating the full footprint of each wire, it would have been sufficient to generate a series of line segments, and then
+test these for intersection. A naïve approach here of simply comparing each pair of segments would be quadratic in the
+number of segments, but independent of the magnitude of the vectors.
+
+An additional tricky bit here would be what to do with lines that are part of both wires. However, these can be handled
+in constant time for each wire: if you have an axis-aligned line segment, the minimised Manhattan distance occurs either at 
+the end of the segment nearest to the origin on the axis it's parallel to, or in the middle if it crosses zero in the axis.
+
+The bonus version probably can be done with a sweep line style algorithm, which should be log-linear in the number of 
+components.

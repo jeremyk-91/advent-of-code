@@ -1,5 +1,7 @@
 import System.Environment
 import Data.List
+import qualified Data.Map as Map
+import qualified Data.Map.Merge.Strict as Map
 
 type WireInstruction = (Char, Int)
 type Coordinate = (Int, Int)
@@ -46,15 +48,31 @@ sortedIntersection (x:xs) (y:ys)
   | x < y  = sortedIntersection xs (y:ys)
   | x > y  = sortedIntersection (x:xs) ys
 
+intersectMaps :: (Ord a) => Map.Map a b -> Map.Map a b -> Map.Map a (b, b)
+intersectMaps = Map.merge Map.dropMissing Map.dropMissing (Map.zipWithMatched (\k x y -> (x, y)))
+
+findMinTraceLength :: Map.Map Coordinate (Int, Int) -> Int
+findMinTraceLength m
+  = foldl min maxBound $ mapWithSums m
+    where mapWithSums = Map.map (\x -> fst x + snd x)
+
 manhattanDistance :: Coordinate -> Int
 manhattanDistance (x, y) = abs x + abs y
 
 main :: IO()
 main = do
   input <- readFile "input-3"
-  let wireInstructions = map (\x -> splitOn x ',') (lines input)
-  let parsedInstructions = map (\x -> map (parseWireInstruction) x) wireInstructions
+  let parsedInstructions = map (map parseWireInstruction) $ map (\x -> splitOn x ',') (lines input)
   let traces = map (sort . (map fst) . findWirePoints) parsedInstructions
   let intersections = sortedIntersection (traces!!0) (traces!!1)
   let answer = minimum (map manhattanDistance intersections)
+  putStrLn (show answer)
+
+main2 :: IO()
+main2 = do
+  input <- readFile "input-3"
+  let parsedInstructions = map (map parseWireInstruction) $ map (\x -> splitOn x ',') (lines input)
+  let traces = map (Map.fromList . findWirePoints) parsedInstructions
+  let intersections = intersectMaps (traces!!0) (traces!!1)
+  let answer = findMinTraceLength intersections
   putStrLn (show answer)

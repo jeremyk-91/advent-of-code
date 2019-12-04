@@ -57,3 +57,32 @@ the end of the segment nearest to the origin on the axis it's parallel to, or in
 
 The bonus version probably can be done with a sweep line style algorithm, which should be log-linear in the number of 
 components.
+
+## Day 4
+Time taken: 10 minutes | Time I'd expect in Java: 8 minutes
+
+Finally, a puzzle without needing input parsing. There are elegant ways of extracting the digits from a number... and then
+there is `show` and `read`; as it turned out I didn't even need to convert back to integers, since you only need ordering
+and equality on the items bearing the restrictions in mind.
+
+For part 2, I went with a simple approach of condensing each string into a run-length encoded format, e.g. `111122` would
+become `[(1, 4), (2, 2)]` and then simply checking if any pair had a second element of 2. Pretty straightforward.
+
+### Jeremy's part 2 idea
+
+> The elves made a mistake and the range of the password was not 248345-746315, but 248345-746315 **centi-millillion**.
+  That is, there are 300,003 digits after the first six.
+  How many passwords are possible? (Only the part 1 restrictions apply; you can have more than doubled digits.)
+
+Again, I thought Part 2 may have involved a more elegant attack, this time based on combinatorics. For this version of the
+puzzle, you'll probably want to begin with each of the six-digit numbers from 248345 to 746314 (note: 746315 followed by
+all zeroes is not valid since the numbers decrease), and consider how many ways there are to extend them into a valid 
+password. While some of these numbers are immediately not extensible, others including non-passwords could be if they were
+increasing (e.g. while `234567` is not a valid password, `234567` followed by all 8s is valid).
+
+Walking down all of the possible passwords, even accounting for pruning of decreasing passwords is likely to be a no-go.
+The trick here involves what's known as *memoisation*: for example, 223348 and 223358 can extend to the same number of
+passwords, because we already have a double *and* the remaining digits must not decrease from 8, so the ways in which they
+can be validly extended to form a full password must have the same suffix. Once we figure this out once, we can re-use
+the number without computing it again. The "state" we are looking at here would be the number of digits to fill in,
+our last digit, and whether we've had a double yet or not.

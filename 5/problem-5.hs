@@ -6,7 +6,9 @@ type BinaryOperator = Int -> Int -> Int
 type Output = (Memory, [Int])
 type Instruction = (Int, Int, Int, Int)
 
-data Operation = Add Mode Mode | Multiply Mode Mode | Halt | Input | Output Mode deriving (Eq, Show)
+data Operation = Add Mode Mode | Multiply Mode Mode | Halt | Input | Output Mode
+  | JumpIfTrue Mode Mode | JumpIfFalse Mode Mode | LessThan Mode Mode | Equals Mode Mode
+  deriving (Eq, Show)
 data Mode = Position | Immediate deriving (Eq, Show)
 
 -- Splits elements in a list based on a delimiter
@@ -33,7 +35,12 @@ parseOperation (opcode, mode1, mode2, mode3)
   | opcode == 2    = Multiply (parseMode mode1) (parseMode mode2)
   | opcode == 3    = Input
   | opcode == 4    = Output (parseMode mode1)
+  | opcode == 5    = JumpIfTrue (parseMode mode1) (parseMode mode2)
+  | opcode == 6    = JumpIfFalse (parseMode mode1) (parseMode mode2)
+  | opcode == 7    = LessThan (parseMode mode1) (parseMode mode2)
+  | opcode == 8    = Equals (parseMode mode1) (parseMode mode2)
   | opcode == 99   = Halt
+  | otherwise      = error ("opcode " ++ (show opcode))
 
 parseMode :: Int -> Mode
 parseMode 0 = Position
@@ -62,7 +69,7 @@ runOperation (Multiply m1 m2) intCode pointer output
       output
 runOperation Input intCode pointer output
   = runIntCodeWithBuffers
-      (setMemory intCode (loadMemory intCode (pointer + 1)) 1)
+      (setMemory intCode (loadMemory intCode (pointer + 1)) 5)
       (pointer + 2)
       output
 runOperation (Output mode) intCode pointer output
@@ -70,6 +77,57 @@ runOperation (Output mode) intCode pointer output
       intCode
       (pointer + 2)
       (output ++ [(loadMemory intCode (getArgument intCode mode (pointer + 1)))])
+runOperation op@(JumpIfTrue m1 m2) intCode pointer output
+  = runIntCodeWithBuffers
+      intCode
+      (shiftPointer op intCode pointer)
+      output
+runOperation op@(JumpIfFalse m1 m2) intCode pointer output
+  = runIntCodeWithBuffers
+      intCode
+      (shiftPointer op intCode pointer)
+      output
+runOperation op@(LessThan m1 m2) intCode pointer output
+  = runIntCodeWithBuffers
+      (performValueTest op intCode pointer)
+      (pointer + 4)
+      output
+runOperation op@(Equals m1 m2) intCode pointer output
+  = runIntCodeWithBuffers
+      (performValueTest op intCode pointer)
+      (pointer + 4)
+      output
+
+-- Returns the new value of the pointer for jumps
+shiftPointer :: Operation -> Memory -> Int -> Int
+shiftPointer (JumpIfTrue m1 m2) intCode pointer
+  | value1 == 0 = pointer + 3
+  | otherwise   = value2
+  where
+    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
+    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
+shiftPointer (JumpIfFalse m1 m2) intCode pointer
+  | value1 == 0 = value2
+  | otherwise   = pointer + 3
+  where
+    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
+    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
+
+performValueTest :: Operation -> Memory -> Int -> Memory
+performValueTest (LessThan m1 m2) intCode pointer
+  | value1 < value2 = setMemory intCode value3 1
+  | otherwise       = setMemory intCode value3 0
+  where
+    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
+    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
+    value3 = loadMemory intCode (pointer + 3)
+performValueTest (Equals m1 m2) intCode pointer
+  | value1 == value2 = setMemory intCode value3 1
+  | otherwise        = setMemory intCode value3 0
+  where
+    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
+    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
+    value3 = loadMemory intCode (pointer + 3)
 
 getArgument :: Memory -> Mode -> Int -> Int
 getArgument _ Immediate x = x

@@ -59,12 +59,12 @@ runIntCodeWithBuffers intCode pointer output
 runOperation :: Operation -> Memory -> Int -> [Int] -> Output
 runOperation (Add m1 m2) intCode pointer output
   = runIntCodeWithBuffers
-      (setMemory intCode (loadMemory intCode (pointer + 3)) ((getArgument intCode m1 (loadMemory intCode (pointer + 1))) + (getArgument intCode m2 (loadMemory intCode (pointer + 2)))))
+      (performBinaryOperation (m1, m2) (+) intCode pointer)
       (pointer + 4)
       output
 runOperation (Multiply m1 m2) intCode pointer output
   = runIntCodeWithBuffers
-      (setMemory intCode (loadMemory intCode (pointer + 3)) ((getArgument intCode m1 (loadMemory intCode (pointer + 1))) * (getArgument intCode m2 (loadMemory intCode (pointer + 2)))))
+      (performBinaryOperation (m1, m2) (*) intCode pointer)
       (pointer + 4)
       output
 runOperation Input intCode pointer output
@@ -76,7 +76,7 @@ runOperation (Output mode) intCode pointer output
   = runIntCodeWithBuffers
       intCode
       (pointer + 2)
-      (output ++ [(loadMemory intCode (getArgument intCode mode (pointer + 1)))])
+      (output ++ [(getValue intCode mode (pointer + 1))])
 runOperation op@(JumpIfTrue m1 m2) intCode pointer output
   = runIntCodeWithBuffers
       intCode
@@ -87,16 +87,27 @@ runOperation op@(JumpIfFalse m1 m2) intCode pointer output
       intCode
       (shiftPointer op intCode pointer)
       output
-runOperation op@(LessThan m1 m2) intCode pointer output
+runOperation (LessThan m1 m2) intCode pointer output
   = runIntCodeWithBuffers
-      (performValueTest op intCode pointer)
+      (performBinaryOperation (m1, m2) (boolToDigital (<)) intCode pointer)
       (pointer + 4)
       output
-runOperation op@(Equals m1 m2) intCode pointer output
+runOperation (Equals m1 m2) intCode pointer output
   = runIntCodeWithBuffers
-      (performValueTest op intCode pointer)
+      (performBinaryOperation (m1, m2) (boolToDigital (==)) intCode pointer)
       (pointer + 4)
       output
+
+boolToDigital :: (Int -> Int -> Bool) -> BinaryOperator
+boolToDigital f x y
+  | f x y     = 1
+  | otherwise = 0
+
+performBinaryOperation :: (Mode, Mode) -> BinaryOperator -> Memory -> Int -> Memory
+performBinaryOperation (m1, m2) operator intCode pointer
+  = setMemory intCode value3 (operator value1 value2)
+  where
+    (value1, value2, value3) = parseTwoArgumentsAndDestination (m1, m2) intCode pointer
 
 -- Returns the new value of the pointer for jumps
 shiftPointer :: Operation -> Memory -> Int -> Int
@@ -104,30 +115,25 @@ shiftPointer (JumpIfTrue m1 m2) intCode pointer
   | value1 == 0 = pointer + 3
   | otherwise   = value2
   where
-    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
-    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
+    value1 = getValue intCode m1 (pointer + 1)
+    value2 = getValue intCode m2 (pointer + 2)
 shiftPointer (JumpIfFalse m1 m2) intCode pointer
   | value1 == 0 = value2
   | otherwise   = pointer + 3
   where
-    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
-    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
+    value1 = getValue intCode m1 (pointer + 1)
+    value2 = getValue intCode m2 (pointer + 2)
 
-performValueTest :: Operation -> Memory -> Int -> Memory
-performValueTest (LessThan m1 m2) intCode pointer
-  | value1 < value2 = setMemory intCode value3 1
-  | otherwise       = setMemory intCode value3 0
+parseTwoArgumentsAndDestination :: (Mode, Mode) -> Memory -> Int -> (Int, Int, Int)
+parseTwoArgumentsAndDestination (mode1, mode2) intCode pointer = (x, y, z)
   where
-    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
-    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
-    value3 = loadMemory intCode (pointer + 3)
-performValueTest (Equals m1 m2) intCode pointer
-  | value1 == value2 = setMemory intCode value3 1
-  | otherwise        = setMemory intCode value3 0
-  where
-    value1 = loadMemory intCode (getArgument intCode m1 (pointer + 1))
-    value2 = loadMemory intCode (getArgument intCode m2 (pointer + 2))
-    value3 = loadMemory intCode (pointer + 3)
+    x = getValue intCode mode1 (pointer + 1)
+    y = getValue intCode mode2 (pointer + 2)
+    z = loadMemory intCode (pointer + 3)
+
+getValue :: Memory -> Mode -> Int -> Int
+getValue memory mode pointer
+  = loadMemory memory (getArgument memory mode pointer)
 
 getArgument :: Memory -> Mode -> Int -> Int
 getArgument _ Immediate x = x

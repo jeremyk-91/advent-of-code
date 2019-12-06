@@ -1,11 +1,11 @@
 # advent-of-code-2019
 I'm working on the [Advent of Code](https://adventofcode.com/) problems for 2019 in this repository.
-The goal is to solve as many of the problems as possible, if not all of them, using Haskell. I first learned about it during 
-my degree at Imperial College, but haven't used it much since besides occasionally doing the 
+The goal is to solve as many of the problems as possible, if not all of them, using Haskell. I first learned about it during
+my degree at Imperial College, but haven't used it much since besides occasionally doing the
 [January tests](http://wp.doc.ic.ac.uk/ajf/haskell-tests/) for fun. Nonetheless, I thoroughly enjoyed learning about Haskell
 and working with it - I'm not sure how much can be attributed to the, in my opinion, excellent Tony Field.
 
-I'm most familiar with Java (with C++ a distant second and probably Python third), so working with Haskell can be quite 
+I'm most familiar with Java (with C++ a distant second and probably Python third), so working with Haskell can be quite
 frustrating in that I'm taking a long time for something I could conceivably implement in under 5 minutes.
 
 I'll write up some of the thinking behind my solutions, as well as what I thought part 2 was going to be when I looked at the
@@ -42,7 +42,7 @@ map library rather than messing around with sorted lists of key-value pairs.
 > In part 1, the length of each segment of wire was bounded by 2<sup>10</sup>, and the length of each wire was bounded by
   2<sup>18</sup>. What happens if we changed these limits to 2<sup>63</sup> and 2<sup>63</sup> respectively? The number
   of components of each wire is bounded by 2<sup>10</sup>, still.
-  
+
 > Bonus: The number of components of each wire is bounded by 2<sup>20</sup>, not 2<sup>10</sup>: your algorithm
   cannot be quadratic in this.
 
@@ -52,10 +52,10 @@ test these for intersection. A naïve approach here of simply comparing each pai
 number of segments, but independent of the magnitude of the vectors.
 
 An additional tricky bit here would be what to do with lines that are part of both wires. However, these can be handled
-in constant time for each wire: if you have an axis-aligned line segment, the minimised Manhattan distance occurs either at 
+in constant time for each wire: if you have an axis-aligned line segment, the minimised Manhattan distance occurs either at
 the end of the segment nearest to the origin on the axis it's parallel to, or in the middle if it crosses zero in the axis.
 
-The bonus version probably can be done with a sweep line style algorithm, which should be log-linear in the number of 
+The bonus version probably can be done with a sweep line style algorithm, which should be log-linear in the number of
 components.
 
 ## Day 4
@@ -76,7 +76,7 @@ become `[(1, 4), (2, 2)]` and then simply checking if any pair had a second elem
 
 Again, I thought Part 2 may have involved a more elegant attack, this time based on combinatorics. For this version of the
 puzzle, you'll probably want to begin with each of the six-digit numbers from 248345 to 746314 (note: 746315 followed by
-all zeroes is not valid since the numbers decrease), and consider how many ways there are to extend them into a valid 
+all zeroes is not valid since the numbers decrease), and consider how many ways there are to extend them into a valid
 password. While some of these numbers are immediately not extensible, others including non-passwords could be if they were
 increasing (e.g. while `234567` is not a valid password, `234567` followed by all 8s is valid).
 
@@ -86,3 +86,34 @@ passwords, because we already have a double *and* the remaining digits must not 
 can be validly extended to form a full password must have the same suffix. Once we figure this out once, we can re-use
 the number without computing it again. The "state" we are looking at here would be the number of digits to fill in,
 our last digit, and whether we've had a double yet or not.
+
+## Day 5
+Time taken: 75 minutes | Time I'd expect in Java: 20 minutes
+
+Probably could have done this faster, but I ended up reimplementing quite a good chunk of the intcode interpreter so
+I at least have types to work with. Again, there wasn't very much here other than following the instructions.
+
+There was a bit of slightly dodgy code to parse the digits of a number, with possible leading zeroes. I had
+
+```
+normaliseInstruction x = normaliseInstruction' ((map (read . return) $ (reverse $ show x)) ++ (repeat 0))
+```
+
+where I basically converted an integer to digits, converted those digits back to numbers, reversed it and added
+infinite leading zeroes, then processed it in terms of creating an instruction.
+
+I did struggle with getting the right answer to Part 1 at first, because I didn't initially realise that the output
+instruction could take immediate mode arguments. I also lost some time debugging as well because I set input to 55 as
+part of testing out the sample programs, and then was wondering why I was having unexpected opcodes of 55. I even
+opened up the GHCI debugger for possibly the first time (definitely the first time in years).
+
+## Day 6
+Time taken: 25 minutes | Time I'd expect in Java: 10 minutes
+
+In the first part, the number of things that something is orbiting is given by their distance from the root node,
+`COM`, and a way to find this is by breadth-first search. I used the Map interface again to store the graph as,
+effectively, an adjacency list. We can just compute this across the tree and then take the sum.
+
+For the second part, I added the reverse edges to the graph, and then found the distance from `YOU` to `SAN`.
+My BFS already had a visited set to avoid cycles (even though this probably wasn't needed in part 1). One last trick
+here was that the number of *transfers* is of course the distance minus 2.

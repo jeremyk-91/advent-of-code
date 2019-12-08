@@ -68,6 +68,10 @@ and equality on the items bearing the restrictions in mind.
 For part 2, I went with a simple approach of condensing each string into a run-length encoded format, e.g. `111122` would
 become `[(1, 4), (2, 2)]` and then simply checking if any pair had a second element of 2. Pretty straightforward.
 
+I'm not doing a 25 days/25 languages challenge (I'm not sure I even know 25, and the intcode interpreters will be a
+nightmare, as you end up doing quadratic work) but I imagine, if I did, today would be a good choice for languages
+which are difficult to use since I'm fairly convinced the answers can be worked out by hand with a bit of combinatorics.
+
 ### Jeremy's part 2 idea
 
 > The elves made a mistake and the range of the password was not 248345-746315, but 248345-746315 **centi-millillion**.
@@ -85,7 +89,8 @@ The trick here involves what's known as *memoisation*: for example, 223348 and 2
 passwords, because we already have a double *and* the remaining digits must not decrease from 8, so the ways in which they
 can be validly extended to form a full password must have the same suffix. Once we figure this out once, we can re-use
 the number without computing it again. The "state" we are looking at here would be the number of digits to fill in,
-our last digit, and whether we've had a double yet or not.
+and our last digit. We actually don't need to worry about the doubling because of a good friend called the pigeonhole
+principle: any nondecreasing sequence of length 300,009 will have doubled-up digits.
 
 ## Day 5
 Time taken: 75 minutes | Time I'd expect in Java: 20 minutes
@@ -161,3 +166,30 @@ and saw the programs having ever-growing input queues
 
 the problem was obvious. I'd still not be confident doing more sophisticated debugging like this, but having a simple
 print-based method should simplify things a lot going forward.
+
+## Day 8
+Time taken: 12 minutes | Time I'd expect in Java: 5 minutes
+
+This one is also largely a question of following the instructions. I initially got a wrong answer for part 1 because
+I accidentally read the target layer as the one with the most zeroes as opposed to fewer. I found it a bit strange that
+part 1 didn't actually reference the positions of the pixels; I simply built frequency tables, treating each layer as
+an amorphous string.
+
+Part 2 was pretty much as expected, given the way the question was set up I figured we would get to decoding the images.
+I was a bit unsure about what to do for the edge case where all layers are transparent. I decided to just throw, though
+in general this wouldn't quite make sense for image editing programs. I'm not sure if a sub-linear algorithm exists, it
+feels like you need to read enough pixels to be sure you've found the first non-transparent one.
+
+I was a bit worried reading the answer off the puzzle would have been a bit more puzzle-hunty, possibly involving some
+kind of steganography. Or, perhaps worse...
+
+### Jeremy's part 2 idea
+
+> As in the real Part 2, but the image is 8 pixels tall and 1,000,000 pixels in width.
+  It is guaranteed that the image contains a message consisting of letters from the English alphabet, but it is not
+  guaranteed that the same letter is *exactly* represented in the same way.
+  To help you out, it is guaranteed that letters don't overlap, and
+  are definitively separated by two columns of white pixels - furthermore, it is never the case that a single letter
+  has an internal gap of two columns of white pixels.
+
+In other words, an OCR problem! Thankfully the real part 2 could be done by hand.

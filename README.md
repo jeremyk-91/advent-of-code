@@ -104,16 +104,60 @@ infinite leading zeroes, then processed it in terms of creating an instruction.
 
 I did struggle with getting the right answer to Part 1 at first, because I didn't initially realise that the output
 instruction could take immediate mode arguments. I also lost some time debugging as well because I set input to 55 as
-part of testing out the sample programs, and then was wondering why I was having unexpected opcodes of 55. I even
-opened up the GHCI debugger for possibly the first time (definitely the first time in years).
+part of testing out the sample programs, and then was wondering why I was having unexpected opcodes of 55 when running
+the actual program. I even opened up the GHCI debugger for possibly the first time (definitely the first time in years).
 
 ## Day 6
 Time taken: 25 minutes | Time I'd expect in Java: 10 minutes
 
 In the first part, the number of things that something is orbiting is given by their distance from the root node,
 `COM`, and a way to find this is by breadth-first search. I used the Map interface again to store the graph as,
-effectively, an adjacency list. We can just compute this across the tree and then take the sum.
+effectively, an adjacency list. I'd normally use a queue, but went for a frontier-based approach instead because
+I wanted the distances.
 
 For the second part, I added the reverse edges to the graph, and then found the distance from `YOU` to `SAN`.
 My BFS already had a visited set to avoid cycles (even though this probably wasn't needed in part 1). One last trick
 here was that the number of *transfers* is of course the distance minus 2.
+
+## Day 7
+Time taken: 40 minutes | Time I'd expect in Java: 15 minutes
+
+Very much a tale of two different parts. The first was really easy and I almost felt cheap for using Haskell, since
+it already gives you the copying for free. Part two, on the other hand, required some nontrivial reengineering - in
+particular, I used to only expose the outputs, while I now needed to expose the current value of the pointer of each
+program as well.
+
+I also learned about Haskell's `trace` utilities today when trying to find a bug in my part 2 implementation: it turned
+out that while I managed a list of input buffers, I forgot to clear the buffers after the program run, meaning that
+it would re-process the inputs several times. I was worried that purity would get in the way of my debugging (since
+I would just use a debugger or print statements if I was using Java), but once I slapped on a `trace`:
+
+```
+testLoopPermutation :: [(Memory, Int)] -> Int -> [[Int]] -> Int
+testLoopPermutation programs amp inputs
+  | amp == 4 && hasHalted = last outputs
+  | otherwise             = trace (show (inputs, outputs)) $ testLoopPermutation programs' amp' inputs'
+  where (currentProgram, currentPointer) = programs!!amp
+        (mem, outputs, pointer) = runIntCodeFromState currentProgram currentPointer (inputs!!amp)
+        hasHalted = mem!!pointer == 99
+        programs' = set programs amp (mem, pointer)
+        amp' = (amp + 1) `mod` 5
+        inputs' = set inputs amp' ((inputs!!amp') ++ outputs) -- WRONG
+```
+
+and saw the programs having ever-growing input queues
+
+```
+([[6,0],[8],[5],[9],[7]],[0])
+([[6,0],[8,0],[5],[9],[7]],[2])
+([[6,0],[8,0],[5,2],[9],[7]],[3])
+([[6,0],[8,0],[5,2],[9,3],[7]],[6])
+([[6,0],[8,0],[5,2],[9,3],[7,6]],[12])
+([[6,0,12],[8,0],[5,2],[9,3],[7,6]],[8,0,24])
+([[6,0,12],[8,0,8,0,24],[5,2],[9,3],[7,6]],[16,0,10,1,25])
+([[6,0,12],[8,0,8,0,24],[5,2,16,0,10,1,25],[9,3],[7,6]],[7,3,17,2,20,2,50])
+([[6,0,12],[8,0,8,0,24],[5,2,16,0,10,1,25],[9,3,7,3,17,2,20,2,50],[7,6]],[11,6,9,5,18,4,40,4,100])
+```
+
+the problem was obvious. I'd still not be confident doing more sophisticated debugging like this, but having a simple
+print-based method should simplify things a lot going forward.

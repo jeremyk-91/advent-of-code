@@ -193,3 +193,28 @@ kind of steganography. Or, perhaps worse...
   has an internal gap of two columns of white pixels.
 
 In other words, an OCR problem! Thankfully the real part 2 could be done by hand.
+
+## Day 9
+Time taken: 80 minutes | Time I'd expect in Java: 45 minutes
+
+Most of the difficulty here was figuring out what the semantics were supposed to be. For some time I had errors in
+the old op-codes for add, multiply and logic operators as I didn't account for the arguments of _those_ operations to
+be usable in relative mode. I think the tester program in part 1 was also a bit of a trap in that it told me for a while
+that `203` was the opcode I was not handling correctly, even when it should actually have been `2xx01` or something
+like that.
+
+Otherwise, implementing the new features (long memory, relative mode) was quite easy, with fairly standard refactoring.
+At least in some ways part 1 *was* basically the same as part 2 here.
+
+## Day 10
+Time taken: 30 minutes | Time I'd expect in Java: 10 minutes
+
+I saw the problem and was immediately reminded of something I'd solved on Codeforces a year or few years ago.
+Basically, testing a given site consists of extracting all of the vectors of the asteroids relative to that site,
+and then counting the number of unique ones once normalised.
+
+Part 2 was smooth enough in concept: group the asteroids by the bearings of their vectors relative to north, then
+repeatedly execute sweeps of the groups until exhausted (or until the 200th element is pulled). I enjoyed the
+implementation less, and am not too happy with my solution: still feels very imperative/procedural in nature.
+
+Quite a lot of time was also spent figuring out how to convert `atan2` to bearings relative to north.

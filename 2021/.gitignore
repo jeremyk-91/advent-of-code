@@ -1,6 +1,7 @@
 .idea/*
 build/*
 out/*
+src/generated/*
 
 *.ipr
 *.iws

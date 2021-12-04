@@ -16,3 +16,20 @@ check.
 This one asks you to parse a string and then follow the specification on what each of the possible commands actually
 does. The first part can be handled in a stateless way (and was how I implemented it) while the latter requires
 tracking a very minimal amount of state.
+
+### Day 3: Binary Diagnostic
+The first part is straightforward counting. The second I think was more a problem of reading the spec carefully, though
+they were very kind with the test cases. Pretty straightforward overall, though I can see factoring this neatly, and/or
+dealing with edge cases in practice somewhat challenging or annoying.
+
+### Day 4: Giant Squid
+Tasks around 2D arrays tend to be finicky to implement, especially if they MUST be done efficiently. Thankfully it
+didn't need to be super-efficient and I was thus able to get away with having a map of coordinates. The approach was
+fairly straightforward: simulate the gameplay loop on each of the bingo cards, and pick the first (or in part 2, the
+last) to win. I had a bit of an inconvenience with an approach of choosing immutable wrappers of coordinate-number
+maps as opposed to mutating state in part two (since one needs to remember which card was relevant for more iterations
+of the gameplay loop before scoring).
+
+This would probably also have been the first day where the input format of the tickets might have posed a challenge (in
+particular, naive use of string splitting would fail). I missed leading whitespace causing problems for my 
+`String.split()` on the first go-around, though quickly isolated it with the debugger).

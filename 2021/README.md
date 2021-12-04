@@ -20,7 +20,7 @@ tracking a very minimal amount of state.
 ### Day 3: Binary Diagnostic
 The first part is straightforward counting. The second I think was more a problem of reading the spec carefully, though
 they were very kind with the test cases. Pretty straightforward overall, though I can see factoring this neatly, and/or
-dealing with edge cases in practice somewhat challenging or annoying.
+dealing with edge cases in practice somewhat challenging or annoying. Doing this efficiently might also be tricky.
 
 ### Day 4: Giant Squid
 Tasks around 2D arrays tend to be finicky to implement, especially if they MUST be done efficiently. Thankfully it
@@ -31,5 +31,5 @@ maps as opposed to mutating state in part two (since one needs to remember which
 of the gameplay loop before scoring).
 
 This would probably also have been the first day where the input format of the tickets might have posed a challenge (in
-particular, naive use of string splitting would fail). I missed leading whitespace causing problems for my 
-`String.split()` on the first go-around, though quickly isolated it with the debugger).
+particular, naive use of string splitting would fail). I knew to use a `+`for the regex, but missed leading whitespace 
+causing problems for my `String.split()` on the first go-around, though quickly isolated it with the debugger.

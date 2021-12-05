@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import jkong.aoc.tools.Coordinate;
 import org.immutables.value.Value;
 
 import java.io.BufferedReader;
@@ -123,16 +124,4 @@ public class GiantSquid {
         }
     }
 
-    @Value.Immutable
-    interface Coordinate {
-        int x();
-        int y();
-
-        static Coordinate of(int x, int y) {
-            return ImmutableCoordinate.builder()
-                    .x(x)
-                    .y(y)
-                    .build();
-        }
-    }
 }

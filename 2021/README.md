@@ -33,3 +33,9 @@ of the gameplay loop before scoring).
 This would probably also have been the first day where the input format of the tickets might have posed a challenge (in
 particular, naive use of string splitting would fail). I knew to use a `+`for the regex, but missed leading whitespace 
 causing problems for my `String.split()` on the first go-around, though quickly isolated it with the debugger.
+
+### Day 5: Hydrothermal Venture
+This went pretty smoothly and I was actually reasonably happy with the factoring, even though it got a bit messy at
+the end. Reading part 1 I was pretty concerned that part 2 would have been a fair bit more finicky (either solving the
+general problem of line segment intersections, or finding intersections at lattice points) but in the end it turned out
+to just be 45 degree diagonals.
